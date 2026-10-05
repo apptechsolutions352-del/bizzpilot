@@ -1,0 +1,3 @@
+-- Development/demo only. Never run this in production.
+insert into public.businesses (id, name, country_code, currency_code, timezone, locale, business_type) values ('00000000-0000-0000-0000-000000000001', 'Demo Shop', 'ZM', 'ZMW', 'Africa/Lusaka', 'en-ZM', 'Retail') on conflict do nothing;
+insert into public.products (id, business_id, name, selling_price, cost_price, stock_quantity, low_stock_threshold) values ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Coca-Cola 500ml', 8, 5, 50, 10), ('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'Bread', 15, 10, 20, 5), ('00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000001', 'Milk 1L', 25, 18, 10, 5) on conflict do nothing;

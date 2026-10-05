@@ -1,0 +1,23 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../../shared/widgets/app_scaffold.dart';
+import '../../../../shared/models/business_models.dart';
+import '../providers/dashboard_providers.dart';
+class DashboardScreen extends ConsumerWidget {
+  const DashboardScreen({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final business = ref.watch(businessProvider);
+    final dashboard = ref.watch(dashboardProvider);
+    return AppScaffold(title: 'Dashboard', child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [business.when(data: (b) => Text('Good day from ${b.name}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)), error: (_, __) => const Text('Welcome to BizPilot'), loading: () => const LinearProgressIndicator()), const SizedBox(height: 6), const Text('Here is how your business is doing.'), const SizedBox(height: 24), dashboard.when(data: (summary) => _Content(summary: summary), error: (e, _) => Text('Could not load dashboard: $e'), loading: () => const Center(child: CircularProgressIndicator()))]));
+  }
+}
+class _Content extends StatelessWidget {
+  const _Content({required this.summary});
+  final DashboardSummary summary;
+  @override
+  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Wrap(spacing: 12, runSpacing: 12, children: [_Metric(label: "Today's sales", value: summary.sales), _Metric(label: "Today's expenses", value: summary.expenses), _Metric(label: 'Estimated profit', value: summary.estimatedProfit, accent: true), _Metric(label: 'Customer balances', value: summary.outstanding)]), const SizedBox(height: 28), Text('Quick actions', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 12), Wrap(spacing: 10, runSpacing: 10, children: [FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.add_shopping_cart), label: const Text('New Sale')), OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.receipt_long), label: const Text('New Expense')), OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.inventory_2), label: const Text('New Product')), OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.payment), label: const Text('Record Payment'))]), const SizedBox(height: 28), Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: _Panel(title: 'Recent transactions', child: summary.recentSales.isEmpty ? const Text('No sales recorded yet.') : Column(children: summary.recentSales.map((sale) => ListTile(contentPadding: EdgeInsets.zero, leading: const CircleAvatar(child: Icon(Icons.shopping_bag_outlined)), title: Text('${sale.items.length} item sale'), subtitle: Text(DateFormat.yMMMd().add_jm().format(sale.createdAt)), trailing: Text('ZMW ${sale.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold))).toList()))), const SizedBox(width: 16), Expanded(child: _Panel(title: 'Low-stock alerts', child: summary.lowStockProducts.isEmpty ? const Text('Stock levels look healthy.') : Column(children: summary.lowStockProducts.map((product) => ListTile(contentPadding: EdgeInsets.zero, title: Text(product.name), subtitle: Text('${product.stockQuantity} left'), trailing: const Icon(Icons.warning_amber, color: Colors.orange))).toList())))]); 
+}
+class _Metric extends StatelessWidget { const _Metric({required this.label, required this.value, this.accent = false}); final String label; final double value; final bool accent; @override Widget build(BuildContext context) => SizedBox(width: 220, child: Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(accent ? Icons.trending_up : Icons.insights, color: accent ? Colors.orange : Theme.of(context).colorScheme.primary), const SizedBox(height: 16), Text(label), const SizedBox(height: 5), Text('ZMW ${value.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold))])))); }
+class _Panel extends StatelessWidget { const _Panel({required this.title, required this.child}); final String title; final Widget child; @override Widget build(BuildContext context) => Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 12), child]))); }
